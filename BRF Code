@@ -1,0 +1,69 @@
+#include "U8glib.h"
+U8GLIB_SH1106_128X64 oled(U8G_I2C_OPT_NONE);
+const int sensorPin = 2;
+
+// Variables
+volatile int rotationCount = 0;
+volatile bool rotationDetected = false;
+unsigned long prevTime = 0;
+float rpm = 0.0;
+float avgRpm = 0.0;
+float avgrpm = 0.0;
+int count = 0;
+
+void setup() {
+  // Initialize serial communication
+  Serial.begin(9600);
+
+  // Attach an interrupt to the sensor pin
+  attachInterrupt(digitalPinToInterrupt(sensorPin), countRotation, FALLING);
+}
+
+void loop() {
+   oled.firstPage();
+  do {
+    page1();
+  } while (oled.nextPage() ); 
+  if (rotationDetected) {
+    
+    unsigned long currTime = micros();
+    unsigned long timeDiff = currTime - prevTime;
+
+    // Calculate RPM
+    rpm = 60000000.0 / timeDiff; // Convert to RPM
+    rotationDetected = false;
+    prevTime = currTime;
+    
+    if (count < 10) {
+      avgRpm += rpm;
+      count++;
+    } else {
+      avgrpm = avgRpm/10;
+      Serial.print("Average RPM: ");
+      Serial.println(avgrpm);
+      count = 0;
+      avgRpm = 0.0;
+    }
+  }
+}
+
+void countRotation() {
+  // Increment the rotation count
+  rotationCount++;
+  rotationDetected = true;
+}
+void page1(void) {
+  oled.setFont(u8g_font_profont11);
+  oled.setPrintPos(0, 10);
+  oled.print("CoE - Mat-EL");
+  oled.setPrintPos(0, 20);
+  oled.print("BRF Machine");
+  oled.setPrintPos(0, 30);
+  oled.print("No. of Cycles : " );
+  oled.setPrintPos(0, 40);
+  oled.print(rotationCount);
+  oled.setPrintPos(0, 50);
+  oled.print("Motor RPM :");
+  oled.setPrintPos(0, 60);
+  oled.print(avgrpm);
+}
