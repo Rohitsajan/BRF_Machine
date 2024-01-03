@@ -55,7 +55,7 @@ void countRotation() {
 void page1(void) {
   oled.setFont(u8g_font_profont11);
   oled.setPrintPos(0, 10);
-  oled.print("CoE - Mat-EL");
+  oled.print("Welcome!");
   oled.setPrintPos(0, 20);
   oled.print("BRF Machine");
   oled.setPrintPos(0, 30);
